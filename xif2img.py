@@ -1,8 +1,24 @@
 #!/usr/bin/python
 
+'''
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the Revised BSD License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    Revised BSD License for more details.
+
+    Copyright 2015 Game Maker 2k - https://github.com/GameMaker2k
+    Copyright 2015 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
+
+    $FileInfo: xif2img.py - Last Update: 7/06/2015 Ver. 0.0.1 RC 1 - Author: cooldude2k $
+'''
+
 from __future__ import absolute_import, division, print_function, unicode_literals;
 import re, os, sys, argparse, platform;
 from PIL import Image, ImageColor, ImageDraw, ImageFont;
+import upcean.validate, upcean.support, upcean.barcodes.barcode, upcean.barcodes.shortcuts;
 try:
  import xml.etree.cElementTree as cElementTree;
 except ImportError:
@@ -28,7 +44,7 @@ https://github.com/GameMaker2k/PyPixel-Draw/blob/master/PyPixelDraw.py
 
 if(__name__ == "__main__"):
  sys.tracebacklimit = 0;
-__version_info__ = (1, 0, 0, "RC 1");
+__version_info__ = (0, 0, 1, "RC 1");
 if(__version_info__[3]!=None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2])+" "+str(__version_info__[3]);
 if(__version_info__[3]==None):
@@ -64,8 +80,8 @@ def colortolistalpha(color, alpha):
 tree = cElementTree.ElementTree(file=getargs.input);
 root = tree.getroot();
 root.attrib['fill'] = colortolist(root.attrib['fill']);
-pre_xml_img = Image.new("RGBA", (int(root.attrib['width']), int(root.attrib['height'])));
-xml_img = ImageDraw.Draw(pre_xml_img);
+pre_xml_img = Image.new("RGB", (int(root.attrib['width']), int(root.attrib['height'])));
+xml_img = ImageDraw.Draw(pre_xml_img, "RGBA");
 xml_img.rectangle([(0, 0), (int(root.attrib['width']), int(root.attrib['height']))], fill=root.attrib['fill']);
 
 for child in root:
@@ -82,6 +98,64 @@ for child in root:
     sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
   child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
   xml_img.arc(sublist, int(child.attrib['start']), int(child.attrib['end']), fill=child.attrib['fill']);
+
+ if(child.tag=="barcode"):
+  for coordinates in child.iter('coordinates'):
+   if(sublist!=None):
+    sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
+   if(sublist==None):
+    sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
+  xmlbarcode = {"bctype": child.attrib['type'], "upc": child.attrib['code']};
+  if('size' in child.attrib):
+   xmlbarcode.update({"resize": int(child.attrib['size'])});
+  if('hideinfo' in child.attrib):
+   hidebcinfo = child.attrib['hideinfo'].split();
+   hidebcinfoval = [];
+   if(hidebcinfo[0]=="0"):
+    hidebcinfoval.append(False);
+   if(hidebcinfo[0]=="1"):
+    hidebcinfoval.append(True);
+   if(hidebcinfo[1]=="0"):
+    hidebcinfoval.append(False);
+   if(hidebcinfo[1]=="1"):
+    hidebcinfoval.append(True);
+   if(hidebcinfo[2]=="0"):
+    hidebcinfoval.append(False);
+   if(hidebcinfo[2]=="1"):
+    hidebcinfoval.append(True);
+   xmlbarcode.update({"hideinfo": tuple(hidebcinfoval)});
+  if('height' in child.attrib):
+   xmlbarcode.update({"barheight": tuple(map(int, child.attrib['height'].split()))});
+  if('textxy' in child.attrib):
+   xmlbarcode.update({"textxy": tuple(map(int, child.attrib['textxy'].split()))});
+  if('color' in child.attrib):
+   colorsplit = child.attrib['color'].split();
+   colorsplit[0] = re.sub(r"\s+", "", colorsplit[0]);
+   if(re.findall("^\#", colorsplit[0])):
+    colorsplit1 = re.findall("^\#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})", colorsplit[0]);
+   if(re.findall("^rgb", colorsplit[0])):
+    colorsplit1 = re.findall("^rgb\(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\)", colorsplit[0]);
+   colorsplit1 = colorsplit1[0];
+   colorlist1 = (int(colorsplit1[0], 16), int(colorsplit1[1], 16), int(colorsplit1[2], 16));
+   colorsplit[1] = re.sub(r"\s+", "", colorsplit[1]);
+   if(re.findall("^\#", colorsplit[1])):
+    colorsplit2 = re.findall("^\#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})", colorsplit[1]);
+   if(re.findall("^rgb", colorsplit[1])):
+    colorsplit2 = re.findall("^rgb\(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\)", colorsplit[1]);
+   colorsplit2 = colorsplit2[0];
+   colorlist2 = (int(colorsplit2[0], 16), int(colorsplit2[1], 16), int(colorsplit2[2], 16));
+   colorsplit[2] = re.sub(r"\s+", "", colorsplit[2]);
+   if(re.findall("^\#", colorsplit[2])):
+    colorsplit3 = re.findall("^\#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})", colorsplit[2]);
+   if(re.findall("^rgb", colorsplit[2])):
+    colorsplit3 = re.findall("^rgb\(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\)", colorsplit[2]);
+   colorsplit3 = colorsplit3[0];
+   colorlist3 = (int(colorsplit3[0], 16), int(colorsplit3[1], 16), int(colorsplit3[2], 16));
+   colorlist = (colorlist1, colorlist2, colorlist3);
+   xmlbarcode.update({"barcolor": colorlist});
+  tmp_img_paste = upcean.barcodes.shortcuts.validate_draw_barcode(**xmlbarcode).convert('RGBA');
+  pre_xml_img.paste(tmp_img_paste, sublist, tmp_img_paste);
+  del(tmp_img_paste);
 
  if(child.tag=="chord"):
   if('alpha' not in child.attrib):
@@ -122,7 +196,7 @@ for child in root:
   child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
   xml_img.line(sublist, fill=child.attrib['fill'], width=int(child.attrib['width']));
 
- if(child.tag=="multiline"):
+ if(child.tag=="multilinetext"):
   if('alpha' not in child.attrib):
    child.attrib['alpha'] = 255;
   for coordinates in child.iter('coordinates'):
@@ -130,9 +204,12 @@ for child in root:
     sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    if(sublist==None):
     sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
+  mltext = None;
+  for string in child.iter('string'):
+   mltextstrg = string.text;
   child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
   tmp_ttf_file = ImageFont.truetype(child.attrib['font'], int(child.attrib['size']));
-  xml_img.multiline_text(sublist, child.attrib['text'], fill=child.attrib['fill'], font=tmp_ttf_file, spacing=int(child.attrib['spacing']), align=child.attrib['align']);
+  xml_img.multiline_text(sublist, mltextstrg, fill=child.attrib['fill'], font=tmp_ttf_file, spacing=int(child.attrib['spacing']), align=child.attrib['align']);
   del(tmp_ttf_file);
 
  if(child.tag=="picture"):
