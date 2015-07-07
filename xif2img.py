@@ -321,4 +321,4 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
   return new_xml_img;
  return False;
 
-xml_draw_image(getargs.input, getargs.outputtype, False, getargs.resize, getargs.resizetype, getargs.output).show();
+xml_draw_image(getargs.input, getargs.outputtype, True, getargs.resize, getargs.resizetype, getargs.output);
