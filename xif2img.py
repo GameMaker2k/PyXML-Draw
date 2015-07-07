@@ -12,7 +12,7 @@
     Copyright 2015 Game Maker 2k - https://github.com/GameMaker2k
     Copyright 2015 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
 
-    $FileInfo: xif2img.py - Last Update: 7/6/2015 Ver. 0.0.5 RC 1 - Author: cooldude2k $
+    $FileInfo: xif2img.py - Last Update: 7/6/2015 Ver. 0.0.7 RC 1 - Author: cooldude2k $
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals;
@@ -44,7 +44,7 @@ https://github.com/GameMaker2k/PyPixel-Draw/blob/master/PyPixelDraw.py
 
 if(__name__ == "__main__"):
  sys.tracebacklimit = 0;
-__version_info__ = (0, 0, 5, "RC 1");
+__version_info__ = (0, 0, 7, "RC 1");
 if(__version_info__[3]!=None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2])+" "+str(__version_info__[3]);
 if(__version_info__[3]==None):
@@ -116,12 +116,12 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
   tree = cElementTree.ElementTree(cElementTree.fromstring(text));
  root = tree.getroot();
  root.attrib['fill'] = colortolist(root.attrib['fill']);
- pre_xml_img = Image.new("RGB", (int(root.attrib['width']), int(root.attrib['height'])));
+ pre_xml_img = Image.new("RGB", (int(root.attrib['width']), int(root.attrib['height'])), color=root.attrib['fill']);
  xml_img = ImageDraw.Draw(pre_xml_img, "RGBA");
- xml_img.rectangle([(0, 0), (int(root.attrib['width']), int(root.attrib['height']))], fill=root.attrib['fill']);
  for child in root:
   sublist = ();
   tmp_img_paste = None;
+  new_img_paste = None;
   tmp_ttf_file = None;
   if(child.tag=="arc"):
    if('alpha' not in child.attrib):
@@ -206,6 +206,42 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    tmp_img_paste = upcean.barcodes.shortcuts.validate_draw_barcode(**xmlbarcode).convert('RGBA');
    pre_xml_img.paste(tmp_img_paste, sublist, tmp_img_paste);
    del(tmp_img_paste);
+  if(child.tag=="bitmap"):
+   if('alpha' not in child.attrib):
+    child.attrib['alpha'] = 255;
+   child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
+   for coordinates in child.iter('coordinates'):
+    if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
+     sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
+    if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
+     sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
+   tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
+   if(re.findall("([0-9]+)%", child.attrib['width'])):
+    child.attrib['width'] = coordinate_calc(child.attrib['width'], int(root.attrib['width']));
+   if(re.findall("([0-9]+)%", child.attrib['height'])):
+    child.attrib['height'] = coordinate_calc(child.attrib['height'], int(root.attrib['height']));
+   if((tmp_img_paste.size[0]<int(child.attrib['width']) or tmp_img_paste.size[0]>int(child.attrib['width'])) or (tmp_img_paste.size[1]<int(child.attrib['height']) or tmp_img_paste.size[1]>int(child.attrib['height']))):
+    if(resizetype=="antialias"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.ANTIALIAS);
+    if(resizetype=="bilinear"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.BILINEAR);
+    if(resizetype=="bicubic"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.BICUBIC);
+    if(resizetype=="nearest"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.NEAREST);
+    xml_img.bitmap(sublist, new_img_paste, fill=child.attrib['fill']);
+    del(new_img_paste);
+   if(tmp_img_paste.size[0]==int(child.attrib['width']) and tmp_img_paste.size[1]==int(child.attrib['height'])):
+    xml_img.bitmap(sublist, tmp_img_paste, fill=child.attrib['fill']);
+    del(tmp_img_paste);
   if(child.tag=="chord"):
    if('alpha' not in child.attrib):
     child.attrib['alpha'] = 255;
@@ -291,7 +327,7 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    tmp_ttf_file = ImageFont.truetype(child.attrib['font'], int(child.attrib['size']));
    xml_img.multiline_text(sublist, mltextstrg, fill=child.attrib['fill'], font=tmp_ttf_file, spacing=int(child.attrib['spacing']), align=child.attrib['align']);
    del(tmp_ttf_file);
-  if(child.tag=="picture"):
+  if(child.tag=="picture" or child.tag=="photo"):
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
      if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
@@ -306,8 +342,24 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
-   pre_xml_img.paste(tmp_img_paste, sublist, tmp_img_paste);
-   del(tmp_img_paste);
+   if(re.findall("([0-9]+)%", child.attrib['width'])):
+    child.attrib['width'] = coordinate_calc(child.attrib['width'], int(root.attrib['width']));
+   if(re.findall("([0-9]+)%", child.attrib['height'])):
+    child.attrib['height'] = coordinate_calc(child.attrib['height'], int(root.attrib['height']));
+   if((tmp_img_paste.size[0]<int(child.attrib['width']) or tmp_img_paste.size[0]>int(child.attrib['width'])) or (tmp_img_paste.size[1]<int(child.attrib['height']) or tmp_img_paste.size[1]>int(child.attrib['height']))):
+    if(resizetype=="antialias"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.ANTIALIAS);
+    if(resizetype=="bilinear"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.BILINEAR);
+    if(resizetype=="bicubic"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.BICUBIC);
+    if(resizetype=="nearest"):
+     new_img_paste = tmp_img_paste.resize((int(child.attrib['width']), int(child.attrib['height'])), Image.NEAREST);
+    pre_xml_img.paste(new_img_paste, sublist, new_img_paste);
+    del(new_img_paste);
+   if(tmp_img_paste.size[0]==int(child.attrib['width']) and tmp_img_paste.size[1]==int(child.attrib['height'])):
+    pre_xml_img.paste(tmp_img_paste, sublist, tmp_img_paste);
+    del(tmp_img_paste);
   if(child.tag=="pieslice"):
    if('alpha' not in child.attrib):
     child.attrib['alpha'] = 255;
@@ -329,7 +381,7 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.pieslice(sublist, int(child.attrib['start']), int(child.attrib['end']), fill=child.attrib['fill'], outline=child.attrib['outline']);
-  if(child.tag=="point"):
+  if(child.tag=="point" or child.tag=="dot"):
    if('alpha' not in child.attrib):
     child.attrib['alpha'] = 255;
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
@@ -368,7 +420,7 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.polygon(sublist, fill=child.attrib['fill'], outline=child.attrib['outline']);
-  if(child.tag=="rectangle"):
+  if(child.tag=="rectangle" or child.tag=="square"):
    if('alpha' not in child.attrib):
     child.attrib['alpha'] = 255;
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
@@ -411,22 +463,29 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    tmp_ttf_file = ImageFont.truetype(child.attrib['font'], int(child.attrib['size']));
    xml_img.text(sublist, child.attrib['text'], fill=child.attrib['fill'], font=tmp_ttf_file);
    del(tmp_ttf_file);
- if(resizetype!="antialias"):
-  new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.ANTIALIAS);
- if(resizetype!="bilinear"):
-  new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.BILINEAR);
- if(resizetype!="bicubic"):
-  new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.BICUBIC);
- if(resizetype!="nearest"):
-  new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.NEAREST);
- del(xml_img);
- del(pre_xml_img);
- xml_img = ImageDraw.Draw(new_xml_img, "RGBA");
+ if(resize>1):
+  if(resizetype=="antialias"):
+   new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.ANTIALIAS);
+  if(resizetype=="bilinear"):
+   new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.BILINEAR);
+  if(resizetype=="bicubic"):
+   new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.BICUBIC);
+  if(resizetype=="nearest"):
+   new_xml_img = pre_xml_img.resize((int(root.attrib['width']) * int(resize), int(root.attrib['height']) * int(resize)), Image.NEAREST);
+  del(xml_img);
+  del(pre_xml_img);
+  xml_img = ImageDraw.Draw(new_xml_img, "RGBA");
  if(outputimage==True):
-  new_xml_img.save(outfile, imgtype);
+  if(resize>1):
+   new_xml_img.save(outfile, imgtype);
+  if(resize==1):
+   pre_xml_img.save(outfile, imgtype);
   return True;
  if(outputimage==False):
-  return new_xml_img;
+  if(resize>1):
+   return new_xml_img;
+  if(resize==1):
+   return pre_xml_img;
  return False;
 
 xml_draw_image(getargs.input, getargs.outputtype, True, getargs.resize, getargs.resizetype, getargs.output);
