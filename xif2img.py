@@ -286,6 +286,8 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    for string in child.iter('string'):
     mltextstrg = string.text;
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
+   if(re.findall("([0-9]+)%", child.attrib['size'])):
+    child.attrib['size'] = coordinate_calc(child.attrib['size'], int(root.attrib['height']));
    tmp_ttf_file = ImageFont.truetype(child.attrib['font'], int(child.attrib['size']));
    xml_img.multiline_text(sublist, mltextstrg, fill=child.attrib['fill'], font=tmp_ttf_file, spacing=int(child.attrib['spacing']), align=child.attrib['align']);
    del(tmp_ttf_file);
@@ -404,6 +406,8 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
+   if(re.findall("([0-9]+)%", child.attrib['size'])):
+    child.attrib['size'] = coordinate_calc(child.attrib['size'], int(root.attrib['height']));
    tmp_ttf_file = ImageFont.truetype(child.attrib['font'], int(child.attrib['size']));
    xml_img.text(sublist, child.attrib['text'], fill=child.attrib['fill'], font=tmp_ttf_file);
    del(tmp_ttf_file);
