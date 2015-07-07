@@ -49,6 +49,13 @@ if(__version_info__[3]!=None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2])+" "+str(__version_info__[3]);
 if(__version_info__[3]==None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2]);
+__project__ = "PyXML-Draw";
+__project_url__ = "https://github.com/GameMaker2k/PyXML-Draw";
+useragent_string = "Mozilla/5.0 (compatible; {proname}/{prover}; +{prourl})".format(proname=__project__, prover=__version__, prourl=__project_url__);
+if(platform.python_implementation()!=""):
+ useragent_string_alt = "Mozilla/5.0 ({osver}; {archtype}; +{prourl}) {pyimp}/{pyver} (KHTML, like Gecko) {proname}/{prover}".format(osver=platform.system()+" "+platform.release(), archtype=platform.machine(), prourl=__project_url__, pyimp=platform.python_implementation(), pyver=platform.python_version(), proname=__project__, prover=__version__);
+if(platform.python_implementation()==""):
+ useragent_string_alt = "Mozilla/5.0 ({osver}; {archtype}; +{prourl}) {pyimp}/{pyver} (KHTML, like Gecko) {proname}/{prover}".format(osver=platform.system()+" "+platform.release(), archtype=platform.machine(), prourl=__project_url__, pyimp="Python", pyver=platform.python_version(), proname=__project__, prover=__version__);
 
 parser = argparse.ArgumentParser(conflict_handler = "resolve", add_help = True);
 parser.add_argument("-i", "--input", default = None, help = "enter name of input file");
@@ -77,13 +84,28 @@ def colortolistalpha(color, alpha):
   return (int(colorsplit[0], 16), int(colorsplit[1], 16), int(colorsplit[2], 16), int(alpha));
  return None;
 
-def xml_draw_image(text, imgtype="png", outputimage=True, resize=1, resizetype="nearest", outfile=None):
+def check_if_string(strtext):
+ if(sys.version[0]=="2"):
+  if(isinstance(strtext, basestring)):
+   return True;
+ if(sys.version[0]=="3"):
+  if(isinstance(strtext, str)):
+   return True;
+ return False;
+
+def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetype="nearest", outfile=None):
  if(not str(resize).isdigit() or resize<1):
   resize = 1;
  resizetype = resizetype.lower();
  if(resizetype!="antialias" and resizetype!="bilinear" and resizetype!="bicubic" and resizetype!="nearest"):
   resizetype = "nearest";
- tree = cElementTree.ElementTree(cElementTree.fromstring(text));
+ if(not os.path.isfile(xiffile) and re.findall("^(http|https)\:\/\/", xiffile)):
+  xmlheaders = {'User-Agent': useragent_string};
+  tree = cElementTree.ElementTree(file=urllib2.urlopen(urllib2.Request(xiffile, None, xmlheaders)));
+ if(os.path.isfile(xiffile) and not re.findall("^(http|https)\:\/\/", xiffile)):
+  tree = cElementTree.ElementTree(file=xiffile);
+ if(not os.path.isfile(xiffile) and not re.findall("^(http|https)\:\/\/", xiffile)):
+  tree = cElementTree.ElementTree(cElementTree.fromstring(text));
  root = tree.getroot();
  root.attrib['fill'] = colortolist(root.attrib['fill']);
  pre_xml_img = Image.new("RGB", (int(root.attrib['width']), int(root.attrib['height'])));
@@ -292,9 +314,11 @@ def xml_draw_image(text, imgtype="png", outputimage=True, resize=1, resizetype="
  del(xml_img);
  del(pre_xml_img);
  xml_img = ImageDraw.Draw(new_xml_img, "RGBA");
- new_xml_img.save(outfile, imgtype);
- return True;
+ if(outputimage==True):
+  new_xml_img.save(outfile, imgtype);
+  return True;
+ if(outputimage==False):
+  return new_xml_img;
+ return False;
 
-ftest=open(getargs.input, "r");
-xml_draw_image(ftest.read(), getargs.outputtype, True, getargs.resize, getargs.resizetype, getargs.output);
-ftest.close();
+xml_draw_image(getargs.input, getargs.outputtype, False, getargs.resize, getargs.resizetype, getargs.output).show();
