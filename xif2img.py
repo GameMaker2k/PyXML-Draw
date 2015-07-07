@@ -12,7 +12,7 @@
     Copyright 2015 Game Maker 2k - https://github.com/GameMaker2k
     Copyright 2015 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
 
-    $FileInfo: xif2img.py - Last Update: 7/06/2015 Ver. 0.0.2 RC 1 - Author: cooldude2k $
+    $FileInfo: xif2img.py - Last Update: 7/6/2015 Ver. 0.0.5 RC 1 - Author: cooldude2k $
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals;
@@ -44,7 +44,7 @@ https://github.com/GameMaker2k/PyPixel-Draw/blob/master/PyPixelDraw.py
 
 if(__name__ == "__main__"):
  sys.tracebacklimit = 0;
-__version_info__ = (0, 0, 2, "RC 1");
+__version_info__ = (0, 0, 5, "RC 1");
 if(__version_info__[3]!=None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2])+" "+str(__version_info__[3]);
 if(__version_info__[3]==None):
@@ -93,6 +93,14 @@ def check_if_string(strtext):
    return True;
  return False;
 
+def coordinate_calc(calc_num, calc_size):
+ if(re.findall("([0-9]+)%", calc_num)):
+  if(int(re.findall("([0-9]+)%", calc_num)[0])==0):
+   return int(0);
+  per_num = int(re.findall("([0-9]+)%", calc_num)[0]);
+  return int(float(calc_size) * (float(per_num) / float(100)));
+ return int(calc_num);
+
 def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetype="nearest", outfile=None):
  if(not str(resize).isdigit() or resize<1):
   resize = 1;
@@ -120,16 +128,32 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
     child.attrib['alpha'] = 255;
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
    xml_img.arc(sublist, int(child.attrib['start']), int(child.attrib['end']), fill=child.attrib['fill']);
   if(child.tag=="barcode"):
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xmlbarcode = {"bctype": child.attrib['type'], "upc": child.attrib['code']};
    if('size' in child.attrib):
@@ -191,8 +215,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    child.attrib['outline'] = colortolistalpha(child.attrib['outline'], child.attrib['outlinealpha']);
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.chord(sublist, int(child.attrib['start']), int(child.attrib['end']), fill=child.attrib['fill'], outline=child.attrib['outline']);
   if(child.tag=="ellipse"):
@@ -204,8 +236,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    child.attrib['outline'] = colortolistalpha(child.attrib['outline'], child.attrib['outlinealpha']);
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.ellipse(sublist, fill=child.attrib['fill'], outline=child.attrib['outline']);
   if(child.tag=="line"):
@@ -213,8 +253,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
     child.attrib['alpha'] = 255;
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
    xml_img.line(sublist, fill=child.attrib['fill'], width=int(child.attrib['width']));
@@ -223,8 +271,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
     child.attrib['alpha'] = 255;
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    mltext = None;
    for string in child.iter('string'):
@@ -236,8 +292,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
   if(child.tag=="picture"):
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
    pre_xml_img.paste(tmp_img_paste, sublist, tmp_img_paste);
@@ -251,8 +315,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    child.attrib['outline'] = colortolistalpha(child.attrib['outline'], child.attrib['outlinealpha']);
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.pieslice(sublist, int(child.attrib['start']), int(child.attrib['end']), fill=child.attrib['fill'], outline=child.attrib['outline']);
   if(child.tag=="point"):
@@ -261,8 +333,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.point(sublist, fill=child.attrib['fill']);
   if(child.tag=="polygon"):
@@ -274,8 +354,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    child.attrib['outline'] = colortolistalpha(child.attrib['outline'], child.attrib['outlinealpha']);
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.polygon(sublist, fill=child.attrib['fill'], outline=child.attrib['outline']);
   if(child.tag=="rectangle"):
@@ -287,8 +375,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
    child.attrib['outline'] = colortolistalpha(child.attrib['outline'], child.attrib['outlinealpha']);
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    xml_img.rectangle(sublist, fill=child.attrib['fill'], outline=child.attrib['outline']);
   if(child.tag=="text"):
@@ -296,8 +392,16 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
     child.attrib['alpha'] = 255;
    for coordinates in child.iter('coordinates'):
     if(sublist!=None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = sublist+(int(coordinates.attrib['x']), int(coordinates.attrib['y']));
     if(sublist==None):
+     if(re.findall("([0-9]+)%", coordinates.attrib['x'])):
+      coordinates.attrib['x'] = coordinate_calc(coordinates.attrib['x'], int(root.attrib['width']));
+     if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
+      coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
    child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
    tmp_ttf_file = ImageFont.truetype(child.attrib['font'], int(child.attrib['size']));
