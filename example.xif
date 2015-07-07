@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<image fill="#0000FF" height="100" width="100">
+<image fill="#0000FF" height="500" width="500">
  <polygon fill="#FF0000" alpha="125" outline="#FFFFFF" outlinealpha="0">
-  <coordinates x="50" y="0" />
-  <coordinates x="100" y="100" />
-  <coordinates x="0" y="100" />
+  <coordinates x="50%" y="0%" />
+  <coordinates x="100%" y="100%" />
+  <coordinates x="0%" y="100%" />
  </polygon>
  <polygon fill="#00FF00" alpha="125" outline="#FFFFFF" outlinealpha="0">
-  <coordinates x="50" y="100" />
-  <coordinates x="100" y="0" />
-  <coordinates x="0" y="0" />
+  <coordinates x="50%" y="100%" />
+  <coordinates x="100%" y="0%" />
+  <coordinates x="0%" y="0%" />
  </polygon>
 </image>
