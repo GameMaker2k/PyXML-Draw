@@ -12,7 +12,7 @@
     Copyright 2015 Game Maker 2k - https://github.com/GameMaker2k
     Copyright 2015 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
 
-    $FileInfo: xif2img.py - Last Update: 7/6/2015 Ver. 0.0.7 RC 1 - Author: cooldude2k $
+    $FileInfo: xif2img.py - Last Update: 7/6/2015 Ver. 0.0.7 RC 2 - Author: cooldude2k $
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals;
@@ -44,7 +44,7 @@ https://github.com/GameMaker2k/PyPixel-Draw/blob/master/PyPixelDraw.py
 
 if(__name__ == "__main__"):
  sys.tracebacklimit = 0;
-__version_info__ = (0, 0, 7, "RC 1");
+__version_info__ = (0, 0, 7, "RC 2");
 if(__version_info__[3]!=None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2])+" "+str(__version_info__[3]);
 if(__version_info__[3]==None):
@@ -223,7 +223,11 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
      if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
-   tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
+   if(not os.path.isfile(child.attrib['file']) and re.findall("^(http|https)\:\/\/", child.attrib['file'])):
+    xmlheaders = {'User-Agent': useragent_string};
+    tmp_img_paste = Image.open(StringIO(urllib2.urlopen(urllib2.Request(child.attrib['file'], None, xmlheaders)).read())).convert('RGBA');
+   if(os.path.isfile(child.attrib['file']) and not re.findall("^(http|https)\:\/\/", child.attrib['file'])):
+    tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
    if(re.findall("([0-9]+)%", child.attrib['width'])):
     child.attrib['width'] = coordinate_calc(child.attrib['width'], int(root.attrib['width']));
    if(re.findall("([0-9]+)%", child.attrib['height'])):
@@ -300,7 +304,7 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
      if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
-   child.attrib['fill'] = colortolistalpha(child.attrib['fill'], child.attrib['alpha']);
+   child.attrib['fill'] = colortolistalpha(child.attrib['f/usr/share/pixmaps/acidrip.pngill'], child.attrib['alpha']);
    xml_img.line(sublist, fill=child.attrib['fill'], width=int(child.attrib['width']));
   if(child.tag=="multilinetext"):
    if('alpha' not in child.attrib):
@@ -341,7 +345,11 @@ def xml_draw_image(xiffile, imgtype="png", outputimage=True, resize=1, resizetyp
      if(re.findall("([0-9]+)%", coordinates.attrib['y'])):
       coordinates.attrib['y'] = coordinate_calc(coordinates.attrib['y'], int(root.attrib['height']));
      sublist = (int(coordinates.attrib['x']), int(coordinates.attrib['y']));
-   tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
+   if(not os.path.isfile(child.attrib['file']) and re.findall("^(http|https)\:\/\/", child.attrib['file'])):
+    xmlheaders = {'User-Agent': useragent_string};
+    tmp_img_paste = Image.open(StringIO(urllib2.urlopen(urllib2.Request(child.attrib['file'], None, xmlheaders)).read())).convert('RGBA');
+   if(os.path.isfile(child.attrib['file']) and not re.findall("^(http|https)\:\/\/", child.attrib['file'])):
+    tmp_img_paste = Image.open(child.attrib['file']).convert('RGBA');
    if(re.findall("([0-9]+)%", child.attrib['width'])):
     child.attrib['width'] = coordinate_calc(child.attrib['width'], int(root.attrib['width']));
    if(re.findall("([0-9]+)%", child.attrib['height'])):
