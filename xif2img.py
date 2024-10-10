@@ -703,7 +703,8 @@ def xml_draw_image(
                             coordinates.attrib['height'], int(root.attrib['height']))
                     sublist = sublist + (int(coordinates.attrib['x']),
                                          int(coordinates.attrib['y']),
-                                         int(coordinates.attrib['x']) + int(coordinates.attrib['width']),
+                                         int(coordinates.attrib['x']) +
+                                         int(coordinates.attrib['width']),
                                          int(coordinates.attrib['y']) + int(coordinates.attrib['height']))
                 if (sublist is None):
                     if (re.findall("([0-9]+)%", coordinates.attrib['x'])):
@@ -719,7 +720,8 @@ def xml_draw_image(
                         coordinates.attrib['height'] = coordinate_calc(
                             coordinates.attrib['height'], int(root.attrib['height']))
                     sublist = (int(coordinates.attrib['x']),
-                               int(coordinates.attrib['y']) + int(coordinates.attrib['width']),
+                               int(coordinates.attrib['y']) +
+                               int(coordinates.attrib['width']),
                                int(coordinates.attrib['y']) + int(coordinates.attrib['height']))
             xml_img.rectangle(
                 sublist,
