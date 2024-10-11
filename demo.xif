@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<image width="200" height="200" fill="#FFFFFF">
-  <rectangle x="50" y="50" width="100" height="100" fill="#0000FF" alpha="255" outline="#000000" />
-  <ellipse x="100" y="100" rx="50" ry="50" fill="#FF0000" alpha="255" />
-  <text x="100" y="150" font="Verdana" size="20" fill="#000000" alpha="255">Hello!</text>
-</image>
-
